@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: demo
+  name: grafana
+spec:
+  template:
+    spec:
+      containers:
+      - name: grafana
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/conf/grafana
+        env:
+          - name: GF_PATHS_CONFIG
+            value: /etc/conf/grafana/grafana.ini            
+      volumes:
+        - name: config-volume
+          configMap:
+            name: grafana-config      
