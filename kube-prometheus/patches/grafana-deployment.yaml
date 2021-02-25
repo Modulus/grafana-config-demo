@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:      
+      initContainers:
+      - image: grafana/grafana:7.3.5
+        name: grafana-init
+        command:
+        - bash
+        - -c
+        - grafana-cli plugins install grafana-piechart-panel
+        # volumeMounts:
+        # - mountPath: /var/lib/grafana
+        #   name: grafana-storage
+        #   readOnly: false    
+
+      containers:
+      - name: grafana
+        image: grafana/grafana:7.3.5
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2Gi
+          requests:
+            cpu: "512m"
+            memory: 1Gi
+        env:
+          - name: GF_PATHS_CONFIG
+            value: /etc/conf/grafana/grafana.ini                 
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/conf/grafana
+      securityContext:
+        runAsUser: 65534  #nobody      
+        runAsGroup: 65534  #nobody      
+        fsGroup: 65534  #nobody      
+      serviceAccountName: grafana
+      volumes:
+      # Hack to get pvc to work with grafana in kustomize      
+      # - name: grafana-storage
+      #   emptyDir: null 
+      #   persistentVolumeClaim:
+      #     claimName: grafana-storage
+      - name: config-volume
+        configMap:
+          name: grafana-config      
+  

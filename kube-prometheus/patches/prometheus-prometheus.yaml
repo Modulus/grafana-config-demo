@@ -1,0 +1,44 @@
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  labels:
+    prometheus: k8s
+  name: k8s
+  namespace: monitoring
+spec:
+  # externalUrl: https://prometheus.gcp.cloud.tv2 #TODO: Denne kommer når vi har fått på plass internal dns
+  storage:
+   volumeClaimTemplate:
+      spec:
+        resources:
+          requests:
+            storage: 10Gi    
+  retention: "1d"
+  alerting:
+    alertmanagers:
+    - name: alertmanager-main
+      namespace: monitoring
+      port: web
+  baseImage: quay.io/prometheus/prometheus
+  nodeSelector:
+    kubernetes.io/os: linux  
+  # thanos:
+  #   image: "quay.io/thanos/thanos:v0.14.0"
+  #   tag: "v0.14.0"
+  #   objectStorageConfig: 
+  #     key: "thanos.yaml"  # How the file inside the secret is called
+  #     name: "thanos-objectstorage"  # This is the name of your Kubernetes secret with the config
+  podMonitorNamespaceSelector: {}
+  podMonitorSelector: {}
+  ruleNamespaceSelector: 
+    matchLabels:
+      what.com/prometheus: scrape  
+  replicas: 2
+  resources:
+    requests:
+      cpu: "250m"
+      memory: 512Mi 
+  ruleSelector: {}
+  serviceAccountName: prometheus-k8s
+  serviceMonitorNamespaceSelector: {}
+  serviceMonitorSelector: {}
